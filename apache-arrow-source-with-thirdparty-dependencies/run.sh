@@ -22,7 +22,8 @@ docker build --build-arg version=${VERSION} --tag $TAG .
 # Check the build process in an offline container.
 
 rm -rf work && mkdir work
-docker save $TAG | tar --extract --to-stdout --file=- --wildcards '*/layer.tar' | tar x --directory=work
+BLOB=$(docker save $TAG | tar --extract --to-stdout --file=- manifest.json | jq --raw-output '.[].Layers[]')
+docker save $TAG | tar --extract --to-stdout --file=- "${BLOB}" | tar x --directory=work
 
 guix shell --container --development apache-arrow --preserve='^VERSION$' --no-cwd --share=work=/work -- bash <<-EOF
 cd /work
