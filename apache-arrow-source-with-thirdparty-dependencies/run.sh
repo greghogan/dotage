@@ -21,11 +21,13 @@ docker build --build-arg version=${VERSION} --tag $TAG .
 
 # Check the build process in an offline container.
 
-rm -rf work && mkdir work
-BLOB=$(docker save $TAG | tar --extract --to-stdout --file=- manifest.json | jq --raw-output '.[].Layers[]')
-docker save $TAG | tar --extract --to-stdout --file=- "${BLOB}" | tar x --directory=work
+WORKDIR=work-${VERSION}
 
-guix shell --container --development apache-arrow --preserve='^VERSION$' --no-cwd --share=work=/work -- bash <<-EOF
+rm -rf $WORKDIR && mkdir $WORKDIR
+BLOB=$(docker save $TAG | tar --extract --to-stdout --file=- manifest.json | jq --raw-output '.[].Layers[]')
+docker save $TAG | tar --extract --to-stdout --file=- "${BLOB}" | tar x --directory=$WORKDIR
+
+guix shell --container --development apache-arrow --preserve='^VERSION$' --no-cwd --share=${WORKDIR}=/work -- bash <<-EOF
 cd /work
 . env.sh
 mkdir build install
@@ -39,4 +41,4 @@ cmake --install build
 EOF
 
 # Clean up
-rm -rf work
+rm -rf $WORKDIR
