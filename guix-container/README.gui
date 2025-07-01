@@ -1,0 +1,7 @@
+To run a containerized graphical application:
+
+docker run -it --rm \
+  --env DISPLAY \
+  --net host \
+  --volume ~/.Xauthority:/.Xauthority:ro \
+<IMAGE> [<COMMAND> [ARG...]]
